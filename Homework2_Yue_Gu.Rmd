@@ -1,0 +1,425 @@
+---
+title: "Homewrk2"
+author: "Yue Gu"
+date: "2018.2.1"
+output: html_document
+---
+
+###Question 1 
+##(a)
+
+The density of Cauchy (x;\theta):
+$$P(x;\theta)=\cfrac{1}{\pi[1+(x-\theta)^2]}$$
+Because $x_{1},x_{2}...x_{n}$are i.i.d, log-likelihood function $l(\theta)$ equals:
+$$l(\theta)=\ln(\prod_{1}^n p(x_{i};\theta))=\ln(\prod_{1}^n \cfrac{1}{\pi[1+(x_{i}-\theta)^2]}) $$
+$$l(\theta)=\sum_{1}^n \ln (\cfrac{1}{\pi[1+(x_{i}-\theta)^2]})$$
+$$l(\theta)=-n\ln\pi-\sum_{1}^n \ln[1+(\theta-x_{i})^2]$$
+$$l^{'}(\theta)=-2\sum_{1}^n \cfrac{\theta-x_{i}}{1+(\theta-x_{i})^2}$$
+$$l^{''}(\theta)=-2\sum_{1}^n \cfrac{1-(\theta-x_{i})^2}{[1+(\theta-x_{i})^2]^2}$$
+$$I(\theta)=n\int \cfrac{[p^{'}(x)]^2}{p(x)}=\cfrac{4n}{\pi} \int_{-\infty}^{\infty} \cfrac{x^2dx}{(1+x^2)^3}$$
+We set $x=\tan(t) t\in (-\cfrac{\pi}{2},\cfrac{\pi}{2})$, then we have:
+$$I(\theta)=\cfrac{4n}{\pi} \int_{-\cfrac{\pi}{2}}^{\cfrac{\pi}{2}} \cfrac{\tan^2(t)d(\tan(t))}{(1+tan^2(t))^3}$$
+$$=\cfrac{4n}{\pi} \int_{-\cfrac{\pi}{2}}^{\cfrac{\pi}{2}} \cfrac{\tan^2(t)}{(\cfrac{1}{\sec^2(t)})^3}(\cfrac{1}{\sec^2(t)})dt$$
+$$=\cfrac{4n}{\pi} \int_{-\cfrac{\pi}{2}}^{\cfrac{\pi}{2}} \cfrac{\sin^2(t)}{\cos^2(t)}\cos^4(t)dt$$
+$$\cfrac{4n}{\pi} \int_{-\cfrac{\pi}{2}}^{\cfrac{\pi}{2}}\sin^2(t)\cos^2(t)dt$$
+$$=\cfrac{4n}{\pi}*\cfrac{\pi}{8}=\cfrac{n}{2}$$
+
+##(b)
+The observed sample is 
+X <- c(1.77, -0.23, 2.76, 3.80, 3.47, 56.75, -1.34, 4.24, -2.44,
+3.29, 3.71, -2.40, 4.53, -0.07, -1.05, -13.87, -2.53, -1.75)
+
+```{r}
+X <- c(1.77, -0.23, 2.76, 3.80, 3.47, 56.75, -1.34, 4.24, -2.44,
+3.29, 3.71, -2.40, 4.53, -0.07, -1.05, -13.87, -2.53, -1.75)
+log_p <- function(theta,x) {
+  -log(pi)-log(1+(theta-x)^2)
+}
+
+log_likelihood <- function(theta) {
+    log_p(theta,1.77)+log_p(theta,-0.23)+log_p(theta,2.76)+log_p(theta,3.80)+log_p(theta,3.47)+log_p(theta,56.75)+log_p(theta,-1.34)+log_p(theta,4.24)+log_p(theta,-2.44)+log_p(theta,3.29)+log_p(theta,3.71)+log_p(theta,-2.40)+log_p(theta,4.53)+log_p(theta,-0.07)+log_p(theta,-1.05)+log_p(theta,-13.87)+log_p(theta,-2.53)+log_p(theta,-1.75)
+}
+
+neg_log_likelihood <- function(theta) {
+    -(log_p(theta,1.77)+log_p(theta,-0.23)+log_p(theta,2.76)+log_p(theta,3.80)+log_p(theta,3.47)+log_p(theta,56.75)+log_p(theta,-1.34)+log_p(theta,4.24)+log_p(theta,-2.44)+log_p(theta,3.29)+log_p(theta,3.71)+log_p(theta,-2.40)+log_p(theta,4.53)+log_p(theta,-0.07)+log_p(theta,-1.05)+log_p(theta,-13.87)+log_p(theta,-2.53)+log_p(theta,-1.75))
+}
+
+outcome_neg_11 <- nlminb(-11,neg_log_likelihood)
+theta_neg_11 <- outcome_neg_11$par
+outcome_neg_1 <- nlminb(-1,neg_log_likelihood)
+theta_neg_1 <- outcome_neg_1$par
+outcome_0 <- nlminb(0,neg_log_likelihood)
+theta_0 <- outcome_0$par
+outcome_1.5 <- nlminb(1.5,neg_log_likelihood)
+theta_1.5 <- outcome_1.5$par
+outcome_4 <- nlminb(4,neg_log_likelihood)
+theta_4<- outcome_4$par
+outcome_4.7 <- nlminb(4.7,neg_log_likelihood)
+theta_4.7 <- outcome_4.7$par
+outcome_7 <- nlminb(7,neg_log_likelihood)
+theta_7 <- outcome_7$par
+outcome_8 <- nlminb(8,neg_log_likelihood)
+theta_8 <- outcome_8$par
+outcome_38 <- nlminb(38,neg_log_likelihood)
+theta_38 <- outcome_38$par
+
+outcome_MLE <- data.frame(c(theta_neg_11,theta_neg_1,theta_0,theta_1.5,theta_4,theta_4.7,theta_7,theta_8,theta_38))
+rownames(outcome_MLE) <- c('-11','-1','0','1.5','4','4.7','7','8','38')
+library(knitr)
+kable(outcome_MLE, format="markdown",col.names =c('MLE'),caption="MLE for theta using the Newton-Raphson
+method", padding=2)
+```
+Then we plot the curve for the log-likelihood function ranging from -100 to 100 and from -5 to 5. 
+```{r}
+curve(log_likelihood,from=-100,to=100,n=10000)
+curve(log_likelihood,from=-5,to=5)
+
+
+```
+
+
+Sample mean is a good starting point for this case.
+
+
+##(c)
+```{r}
+fixedpoint <- function(fun, x0, tol=1e-07, niter=500){
+	xold <- x0
+	xnew <- fun(xold)
+	for (i in 1:niter) {
+		xold <- xnew
+		xnew <- fun(xold)
+		if ( abs((xnew-xold)) < tol )
+			return(xnew)
+		}
+	stop
+	return('NOT EXIST')
+}
+
+startpoint=c(-11,-1,0,1.5,4,4.7,7,8,38)
+neg_D_log_p <- function(theta,x) {
+  2*(theta-x)/(1+(theta-x)^2)
+}
+
+G_0.64<- function(theta){
+  -0.64*(neg_D_log_p(theta,1.77)+ neg_D_log_p(theta,-0.23)+ neg_D_log_p(theta,2.76)+ neg_D_log_p(theta,3.80)+ neg_D_log_p(theta,3.47)+ neg_D_log_p(theta,56.75)+ neg_D_log_p(theta,-1.34)+ neg_D_log_p(theta,4.24)+ neg_D_log_p(theta,-2.44)+ neg_D_log_p(theta,3.29)+ neg_D_log_p(theta,3.71)+ neg_D_log_p(theta,-2.40)+ neg_D_log_p(theta,4.53)+ neg_D_log_p(theta,-0.07)+ neg_D_log_p(theta,-1.05)+ neg_D_log_p(theta,-13.87)+ neg_D_log_p(theta,-2.53)+ neg_D_log_p(theta,-1.75 ))+theta
+}
+fix_0.64 <- NULL
+for (i in c(-11,-1,0,1.5,4,4.7,7,8,38)){
+  fix_0.64 <- append(fix_0.64,fixedpoint(G_0.64,x0=i))
+}
+
+G_1<- function(theta){
+  -(neg_D_log_p(theta,1.77)+ neg_D_log_p(theta,-0.23)+ neg_D_log_p(theta,2.76)+ neg_D_log_p(theta,3.80)+ neg_D_log_p(theta,3.47)+ neg_D_log_p(theta,56.75)+ neg_D_log_p(theta,-1.34)+ neg_D_log_p(theta,4.24)+ neg_D_log_p(theta,-2.44)+ neg_D_log_p(theta,3.29)+ neg_D_log_p(theta,3.71)+ neg_D_log_p(theta,-2.40)+ neg_D_log_p(theta,4.53)+ neg_D_log_p(theta,-0.07)+ neg_D_log_p(theta,-1.05)+ neg_D_log_p(theta,-13.87)+ neg_D_log_p(theta,-2.53)+ neg_D_log_p(theta,-1.75))+theta
+}
+
+fix_1 <- NULL
+
+for (i in c(-11,-1,0,1.5,4,4.7,7,8,38)){
+  fix_1 <- append(fix_1,fixedpoint(G_1,x0=i))
+}
+
+G_0.25<- function(theta){
+  -0.25*(neg_D_log_p(theta,1.77)+ neg_D_log_p(theta,-0.23)+ neg_D_log_p(theta,2.76)+ neg_D_log_p(theta,3.80)+ neg_D_log_p(theta,3.47)+ neg_D_log_p(theta,56.75)+ neg_D_log_p(theta,-1.34)+ neg_D_log_p(theta,4.24)+ neg_D_log_p(theta,-2.44)+ neg_D_log_p(theta,3.29)+ neg_D_log_p(theta,3.71)+ neg_D_log_p(theta,-2.40)+ neg_D_log_p(theta,4.53)+ neg_D_log_p(theta,-0.07)+ neg_D_log_p(theta,-1.05)+ neg_D_log_p(theta,-13.87)+ neg_D_log_p(theta,-2.53)+ neg_D_log_p(theta,-1.75))+theta
+}
+
+
+fix_0.25 <- NULL 
+
+for (i in c(-11,-1,0,1.5,4,4.7,7,8,38)){
+  fix_0.25 <- append(fix_0.25,fixedpoint(G_0.25,x0=i))
+}
+
+FP <- cbind(fix_0.25,fix_0.64,fix_1)
+
+library(knitr)
+kable(FP)
+```
+
+##(d)
+```{r}
+
+X <- c(1.77, -0.23, 2.76, 3.80, 3.47, 56.75, -1.34, 4.24, -2.44,
+3.29, 3.71, -2.40, 4.53, -0.07, -1.05, -13.87, -2.53, -1.75)
+I <- function(x) diag(9,nrow=length(x))
+
+neg_D_log_p <- function(theta,x) {
+  2*(theta-x)/(1+(theta-x)^2)
+}
+
+neg_log_likelihood <- function(theta) {
+ -(log_p(theta,1.77)+log_p(theta,-0.23)+log_p(theta,2.76)+log_p(theta,3.80)+log_p(theta,3.47)+log_p(theta,56.75)+log_p(theta,-1.34)+log_p(theta,4.24)+log_p(theta,-2.44)+log_p(theta,3.29)+log_p(theta,3.71)+log_p(theta,-2.40)+log_p(theta,4.53)+log_p(theta,-0.07)+log_p(theta,-1.05)+log_p(theta,-13.87)+log_p(theta,-2.53)+log_p(theta,-1.75))
+}
+
+neg_D_log_likelihood <- function(theta){
+  neg_D_log_p(theta,1.77)+ neg_D_log_p(theta,-0.23)+ neg_D_log_p(theta,2.76)+ neg_D_log_p(theta,3.80)+ neg_D_log_p(theta,3.47)+ neg_D_log_p(theta,56.75)+ neg_D_log_p(theta,-1.34)+ neg_D_log_p(theta,4.24)+ neg_D_log_p(theta,-2.44)+ neg_D_log_p(theta,3.29)+ neg_D_log_p(theta,3.71)+ neg_D_log_p(theta,-2.40)+ neg_D_log_p(theta,4.53)+ neg_D_log_p(theta,-0.07)+ neg_D_log_p(theta,-1.05)+ neg_D_log_p(theta,-13.87)+ neg_D_log_p(theta,-2.53)+ neg_D_log_p(theta,-1.75)
+}
+
+Outcome_neg_11 <- nlminb(start = -11,neg_log_likelihood,neg_D_log_likelihood,I)
+T_neg_11 <- Outcome_neg_11$par
+Outcome_neg_1 <- nlminb(start = -1,neg_log_likelihood,neg_D_log_likelihood,I)
+T_neg_1 <- Outcome_neg_1$par
+Outcome_0 <- nlminb(start = 0,neg_log_likelihood,neg_D_log_likelihood,I)
+T_0 <- Outcome_0$par
+Outcome_1.5 <- nlminb(start = 1.5,neg_log_likelihood,neg_D_log_likelihood,I)
+T_1.5 <- Outcome_1.5$par
+Outcome_4 <- nlminb(start = 4,neg_log_likelihood,neg_D_log_likelihood,I)
+T_4 <- Outcome_4$par
+Outcome_4.7 <- nlminb(start = 4.7,neg_log_likelihood,neg_D_log_likelihood,I)
+T_4.7 <- Outcome_4.7$par
+Outcome_7 <- nlminb(start = 7,neg_log_likelihood,neg_D_log_likelihood,I)
+T_7 <- Outcome_7$par
+Outcome_8 <- nlminb(start = 8,neg_log_likelihood,neg_D_log_likelihood,I)
+T_8 <- Outcome_8$par
+
+Outcome_MLE <- data.frame(c(theta_neg_11,theta_neg_1,theta_0,theta_1.5,theta_4,theta_4.7,theta_7,theta_8,theta_38))
+rownames(Outcome_MLE) <- c('-11','-1','0','1.5','4','4.7','7','8','38')
+library(knitr)
+kable(Outcome_MLE, format="markdown",col.names =c('MLE'),caption="MLE for theta usING Fisher Scoring 
+method", padding=2)
+```
+
+##(e) Comments 
+
+As we can tell from the outcomes of the above three methods, with different starting points we will find different optimal point. Because these methods focus on the local maximum point, the start point will decide the direction of the interation and the local maximum point you finally find. 
+For univariate problems, Newton's method is an efficient way to find the maximum. Under the same conditions, it takes fewest interations to find the point. And applying the Fisher scoring, we can refine the estimation of Newton methods, which speeds up the calculating procesess. 
+For fixed-point method, we can see that when $\alpha=1$, the interation couldn't converge at all the starting points except the -11. And it takes 150 times of interation for start points such as 0,-1,2.5,4,compared with 8 times of interation for starting points like -11. The choice of start point will make a big difference to the speed.   
+
+
+
+###Question 2
+
+##(a) 
+The density function is:
+\begin{equation}
+\\f(x_i,\theta) = \frac{1-\cos(x_i-\theta)}{2\pi}
+\end{equation}
+
+The likelihood function is:
+\begin{equation}
+L(\theta) = \prod\limits_{i=1}^{19} \frac{1-\cos(x_i-\theta)}{2\pi}
+\end{equation}
+
+The log-likelihood function is:
+\begin{equation}
+l(\theta) = - 19\log{2\pi} + \sum\limits_{n=1}^{19} \log{(1-\cos(x_i-\theta))} 
+\end{equation}
+
+The first derivative of the log-likelihood function is:
+\begin{equation}
+l^{'}(\theta) = \sum\limits_{i=1}^{19} \frac{\sin(\theta-x_i)}{1-\cos(\theta-x_i)} 
+\end{equation}
+
+The second derivative of the log-likelihood function is:
+\begin{align}
+l^{''}(\theta) &= \sum\limits_{n=1}^{19} \frac{\cos(\theta-x_i)[1-\cos(\theta-x_i)]-\sin^2(\theta-x_i)}
+{[1-\cos(\theta-x_i)]^2} \\
+&= \sum\limits_{n=1}^{19}\frac{\cos(\theta-x_i)-\cos^2(\theta-x_i)-\sin^2(\theta-x_i)}{[1-\cos(\theta-x_i)]^2} \\
+&= \sum\limits_{n=1}^{19} \frac{\cos(\theta-x_i)-1}{[1-\cos(\theta-x_i)]^2} \\
+&= \sum\limits_{n=1}^{19} \frac{1}{\cos(\theta-x_i)-1} \\
+\end{align}
+
+
+
+```{r}
+x <- c(3.91, 4.85, 2.28, 4.06, 3.70, 4.04, 5.46, 3.53, 2.28, 1.96,
+       2.53, 3.88, 2.22, 3.47, 4.82, 2.46, 2.99, 2.54, 0.52)
+
+theta <- seq(-pi,pi, by=0.01)
+
+log.lik <- function (x, theta) {
+  sapply(X=theta, FUN=function(theta) sum(log((1-cos(x-theta))/(2*pi))) )
+}
+
+plot(theta, log.lik(x, theta), xlab="theta", ylab="logL(theta)", type="l")
+
+```
+
+
+#(b) 
+\begin{align}
+E[X|\theta]  &= \frac{1}{2\pi} \int_{0}^{2\pi} x[{1-\cos(x-\theta)}]\,dx \\
+&= \pi - \frac{1}{2\pi} \int_{0}^{2\pi} x\cos(x-\theta)\,dx
+\end{align}
+
+Using integration by parts for the integral above, we get
+\begin{align}
+\int_{0}^{2\pi} x\cos(x-\theta)\,dx &= x\sin(x-\theta)\,|_{0}^{2\pi} - 
+                                      \int_{0}^{2\pi} sin(x-\theta)\,dx \\
+&= 2\pi\sin(2\pi-\theta) \\
+&= 2\pi\sin(-\theta)  \,Since\, \sin(2\pi+x) = \sin(x) \\ 
+&= 2\pi\sin(\theta) \,Since\, \sin(-x) = \sin(x) \\
+\end{align}
+
+Therefore, we have 
+\begin{equation}
+E[X|\theta] = \pi - \sin(\theta)
+\end{equation}
+
+By using the method of moment, we get 
+\begin{equation}
+\\ E[X|\theta]  = \overline{X} \iff  \pi-\sin(\theta) = \overline{X} \iff \theta = \arcsin(\pi-\overline{X})
+\end{equation}
+
+```{r}
+theta_mom <- asin(pi-mean(x))  
+theta_mom
+```
+
+
+Therefore, the method-of-moments estimator is
+\begin{equation}
+\hat{\theta}_{moment}=arcsin(\pi-\overline{x})=-0.09539
+\end{equation}
+
+Question 2 (c)
+```{r}
+newton <- function(f, g, x0, a, maximum) {
+          x1 <- x0 - f(x0)/g(x0)
+          iter <- 1
+          while(abs(x1 - x0) > a & iter < maximum) {
+          x0 <- x1
+          x1 <- x0 - f(x0)/g(x0)
+          cat("[ITER]", iter, "/", x1, fill=T)
+          iter <- iter + 1
+          }
+          return (x1)
+}
+
+# First derivative of the log-likelihood function
+deri1 <- function(theta) {
+         return (-sum(sin(x-theta)/(1-cos(x-theta))))
+}
+
+# Second derivative of the log-likelihood function
+deri2 <- function(theta) {
+         return (-sum(1/(1-cos(x-theta))))
+}
+
+newton(deri1, deri2, theta_mom, 1e-6, 100)
+
+```
+
+
+
+#(d)
+If we start at $\theta_{0}=2.7$, we get $\hat{\theta}=2.848415$
+```{r}
+newton(deri1, deri2, 2.7, 1e-6, 100)
+
+```
+
+
+If we start at $\theta_{0}=-2.7$, we get $\hat{\theta}=-2.668857$  
+```{r}
+newton(deri1, deri2, -2.7, 1e-6, 100)
+
+```
+
+
+#(e)
+
+
+
+###Question 3
+##(A)
+```{r}
+beetle <- data.frame(
+days = c(0, 8, 28, 41, 63, 69, 97, 117, 135, 154),
+beetles = c(2, 47, 192, 256, 768, 896, 1120, 896, 1184, 1024))
+
+growth_fun <- function(t,K,r){2*K/(2+(K-2)*exp(-r*t))}
+
+m <- nls(beetles~growth_fun(days,K,r),data = beetle,start=list(K=1030,r=0.2),trace=TRUE)
+m
+
+```
+
+ 
+##(b)
+```{r}
+sum_error <- function(K,r){
+  return(sum((beetles-2*K/(2+(K-2)*exp(-r*days)))^2))
+}
+days = c(0, 8, 28, 41, 63, 69, 97, 117, 135, 154)
+beetles = c(2, 47, 192, 256, 768, 896, 1120, 896, 1184, 1024)
+z <- matrix(0,100,100,byrow = TRUE)
+for (i in 1:100){
+  for(j in 1:100){
+    K <- 900+5*j
+    r <- 0+0.005*i
+    z[j,i] <- sum_error(K,r)
+  }
+}
+K <- seq(900,1400,length.out = 100)
+r <- seq(0,0.5,length.out = 100)
+contour(K,r,z)
+```
+
+##(c)
+The expression of  partial derivatives about K, r, sigma.
+
+```{r }
+l <- expression(
+  log(1/(sqrt(2*pi)*sigma))-(log((2*2+2*(K-2)*exp(-r*0))/(2*K)))^2/(2*sigma^2)+
+  log(1/(sqrt(2*pi)*sigma))-(log((2*47+47*(K-2)*exp(-r*8))/(2*K)))^2/(2*sigma^2)+
+  log(1/(sqrt(2*pi)*sigma))-(log((2*192+192*(K-2)*exp(-r*28))/(2*K)))^2/(2*sigma^2)+
+  log(1/(sqrt(2*pi)*sigma))-(log((2*256+256*(K-2)*exp(-r*41))/(2*K)))^2/(2*sigma^2)+
+  log(1/(sqrt(2*pi)*sigma))-(log((2*768+768*(K-2)*exp(-r*63))/(2*K)))^2/(2*sigma^2)+
+  log(1/(sqrt(2*pi)*sigma))-(log((2*896+896*(K-2)*exp(-r*69))/(2*K)))^2/(2*sigma^2)+
+  log(1/(sqrt(2*pi)*sigma))-(log((2*1120+1120*(K-2)*exp(-r*97))/(2*K)))^2/(2*sigma^2)+
+  log(1/(sqrt(2*pi)*sigma))-(log((2*896+896*(K-2)*exp(-r*117))/(2*K)))^2/(2*sigma^2)+
+  log(1/(sqrt(2*pi)*sigma))-(log((2*1184+1184*(K-2)*exp(-r*135))/(2*K)))^2/(2*sigma^2)+
+  log(1/(sqrt(2*pi)*sigma))-(log((2*1024+1024*(K-2)*exp(-r*154))/(2*K)))^2/(2*sigma^2))
+
+lpk <- D(l,"K")
+lpr <- D(l,"r")
+lps <- D(l,"sigma")
+lppkk <- D(D(l,"K"),"K")
+lppkr <- D(D(l,"K"),"r")
+lppks <- D(D(l,"K"),"sigma")
+lpprr <- D(D(l,"r"),"r")
+lpprs <- D(D(l,"r"),"sigma")
+lppss <- D(D(l,"sigma"),"sigma")
+```
+
+Given the value of K = 1050, r = 0.12, and sigma = 0,5.
+```{r }
+krs<- matrix(c(1050, 0.12, 0.5))
+row.names(krs) <- c("K", "r", "sigma")
+knitr::kable(krs)
+```
+
+```{r }
+count <- 0
+process <- TRUE
+while(process){
+  K <- krs[1]
+  r <- krs[2]
+  sigma <- krs[3]
+  gp <- matrix(c(eval(lpk), eval(lpr), eval(lps)))
+  gpt <- t(gp)
+  M <- matrix(c(eval(lppkk),eval(lppkr),eval(lppks),eval(lppkr),eval(lpprr),
+                eval(lpprs),eval(lppks),eval(lpprs),eval(lppss)),byrow=TRUE,nrow=3)
+  Minv <- solve(M)
+  krs <-  krs - Minv %*% gp
+  count <- count + 1
+  if(gpt%*%gp < 1e-6 | count == 1000)
+    process = FALSE
+}
+count
+
+krss <- matrix(c(K,r,sigma^2), ncol = 3)
+colnames(krss) <- c("K", "r", "sigma2")
+knitr::kable(krss)
+```
+
+
+variance of parameter estimates.
+```{r var}
+vari <- solve(-M)
+colnames(vari) <- row.names(vari) <- c("K", "r", "sigma")
+knitr::kable(vari)
+```
+
+I finished the homework with my partner Chenyi Yu.
